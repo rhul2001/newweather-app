@@ -13,7 +13,7 @@ const buildUrl = (apiKey, { q, lat, lon }) => {
   return base
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const apiKey = process.env.OPENWEATHER_API_KEY
   if (!apiKey) {
     return res
