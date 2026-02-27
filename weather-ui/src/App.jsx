@@ -37,17 +37,32 @@ function App() {
         params.set('lon', lon)
       }
       const res = await fetch(`/api/weather?${params.toString()}`)
-      const data = await res.json()
+
+      const contentType = res.headers.get('content-type') || ''
+      const isJson = contentType.includes('application/json')
+      const body = isJson ? await res.json() : await res.text()
+
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch weather')
+        const serverMessage =
+          isJson && body && typeof body === 'object' ? body.error : ''
+        const hint =
+          !isJson
+            ? `API returned non-JSON (status ${res.status}). This usually means /api is not deployed or is being rewritten.`
+            : ''
+        throw new Error(serverMessage || hint || 'Failed to fetch weather')
       }
-      setState((prev) => ({ ...prev, current: data, loading: false, error: '' }))
+      setState((prev) => ({
+        ...prev,
+        current: body,
+        loading: false,
+        error: '',
+      }))
       fetchRecentLocations()
     } catch (err) {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: err.message || 'Something went wrong',
+        error: err?.message || 'Something went wrong',
       }))
     }
   }
